@@ -96,7 +96,7 @@ class TestManIntegration {
                     println("issue generate: " + bugId)
                     testLink.reportTCResults(result, bugId, true)
                 }else{
-                    println("No se pudo ejecutar el caso verifique que los datos esten en testlink")
+                    println("No se pudo ejecutar el caso, verifique que los datos ingresados en testlink son correctos")
                 }
             }//cierre del segundo else
         }//cierre del finally catch
