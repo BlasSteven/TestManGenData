@@ -1,6 +1,6 @@
 package org.integration
 
-class run {
+class Run {
 
     static void main(String[] args){
         Propiedades props = new Propiedades()
