@@ -1,0 +1,33 @@
+plugins {
+    id 'groovy'
+    id 'java'
+}
+
+group 'org.integration.testManGenData'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.codehaus.groovy:groovy-all:3.0.8'
+    // https://mvnrepository.com/artifact/br.eti.kinoshita/testlink-java-api
+    implementation group: 'br.eti.kinoshita', name: 'testlink-java-api', version: '1.9.20-1'
+    // https://mvnrepository.com/artifact/org.testng/testng
+    implementation 'org.testng:testng:7.5'
+    // https://mvnrepository.com/artifact/xml-apis/xml-apis
+    implementation group: 'xml-apis', name: 'xml-apis', version: '2.0.2'
+    // https://mvnrepository.com/artifact/org.json/json
+    implementation group: 'org.json', name: 'json', version: '20211205'
+    // https://mvnrepository.com/artifact/org.imgscalr/imgscalr-lib
+    implementation group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
+    // https://mvnrepository.com/artifact/org.spockframework/spock-core
+    testImplementation group: 'org.spockframework', name: 'spock-core', version: '2.1-M2-groovy-3.0'
+
+}
+
+
+test {
+    useJUnitPlatform()
+}
