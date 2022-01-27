@@ -91,6 +91,6 @@ class Utility {
         Image im = ImageIO.read(new File(input))
         BufferedImage thumbnailImage = new BufferedImage(1295,892, BufferedImage.TYPE_INT_RGB)
         thumbnailImage.getGraphics().drawImage(im, 0, 0, 1295, 892, null)
-        ImageIO.write(thumbnailImage, "JPEG", new File(output))
+        ImageIO.write(thumbnailImage, "JPG", new File(output))
     }
 }
