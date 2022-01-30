@@ -9,7 +9,7 @@ class Run {
             TestManIntegration test = new TestManIntegration(props.getProyecto(), props.getPlanPruebas(),
                     props.getCasoPrueba(), props.getSuitePrueba(), props.getBuild(), props.getCategory(),
                     props.getAssigneTo(), false, "", 1,
-                    "testlink")
+                    "org_testPlans_TestLink")
             test.caseValidTest()
         }catch (Exception e){
             e.printStackTrace()

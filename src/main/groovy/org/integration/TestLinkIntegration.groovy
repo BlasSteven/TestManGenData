@@ -23,7 +23,7 @@ import org.apache.commons.io.FileUtils
 class TestLinkIntegration {
     Utility util = new Utility()
     Propiedades props = new Propiedades()
-    private File filesEvidence
+    private File filesEvidence, filesEvidenceCopy
     private String projectName, planName, buildName, suiteName, caseName, noteTestCase, bugId,
             fullExternalId,fileClass, dir
     private ExecutionStatus resultTestCase
@@ -245,6 +245,14 @@ class TestLinkIntegration {
                     println("Error al crear directorio")
                 }
             }//Cierre del tercer if
+            filesEvidenceCopy = new File(dir,nameFolder+System.currentTimeMillis())
+                if (!filesEvidenceCopy.exists()) {
+                    if (filesEvidenceCopy.mkdirs()) {
+                        println("Directorio creado")
+                    } else {
+                        println("Error al crear directorio")
+                    }
+            }//Cierre del quinto if
         }//Cierre del segundo else
     }//Cierre del método
 
@@ -271,17 +279,18 @@ class TestLinkIntegration {
                     Map.put(fileList.lastModified(),nameImg)//colocar el lastModified y el nombre en un mapa para ordenar
                     if (size != 0) {
                         //Redimensión y ajustes de propiedades para evitar que supere los bytes admitidos
-                        util.decreaseSize(fileList.toString(), fileList.toString())
+                        util.decreaseSize(fileList.toString(), filesEvidenceCopy.toString()+"/"+nameImg)
                     }//Cierre del if
                 }//Cierre del for
                 //Ordenar de mayor a menor los archivos para subierlos
                 java.util.Map<Long, String> map = new TreeMap<>(Collections.reverseOrder())
                 map.putAll(Map)
                 //Subir los archivos de mayor a menor
-                map.forEach((k, v) -> { uploadAttachment(v, v.replace(".jpg", ""),v) })
+                map.forEach((k, v) -> { uploadAttachment(v, v.replace(".png", ""),v) })
                 println(" ¡Complete!")
             }
             FileUtils.deleteDirectory(filesEvidence)//Elimina el directorio cuando sube los archvivos
+            FileUtils.deleteDirectory(filesEvidenceCopy)//Elimina el directorio cuando sube los archvivos
         }else{
             println("No hay datos para subir")
         }
@@ -296,7 +305,7 @@ class TestLinkIntegration {
      * en el método Attachment
      * */
     private void uploadAttachment(String archive, String tileAction,String step){
-        File attachmentFile = new File(filesEvidence,archive)
+        File attachmentFile = new File(filesEvidenceCopy,archive)
         String fileContent = null
             byte[] byteArray = FileUtils.readFileToByteArray(attachmentFile)
             fileContent = new String(Base64.encodeBase64(byteArray))
