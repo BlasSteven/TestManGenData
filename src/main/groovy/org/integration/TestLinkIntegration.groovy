@@ -13,6 +13,7 @@ import br.eti.kinoshita.testlinkjavaapi.model.TestSuite
 import br.eti.kinoshita.testlinkjavaapi.util.TestLinkAPIException
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.FileUtils
+import org.integration.util.Utility
 
 /**
  * La clase es una integración a testlink para ejecutar y subir evidencia a los casos de prueba
@@ -240,17 +241,19 @@ class TestLinkIntegration {
         filesEvidence = new File(dir,nameFolder)
             if (!filesEvidence.exists()) {
                 if (filesEvidence.mkdirs()) {
-                    println("Directorio creado")
+                    println("Directorio entrada de evidencias creado")
                 } else {
-                    println("Error al crear directorio")
+                    println("Error al crear directorio de entrada")
+                    upload = 0
                 }
             }//Cierre del tercer if
             filesEvidenceCopy = new File(dir,nameFolder+System.currentTimeMillis())
                 if (!filesEvidenceCopy.exists()) {
                     if (filesEvidenceCopy.mkdirs()) {
-                        println("Directorio creado")
+                        println("Directorio salida de evidencias creado ")
                     } else {
-                        println("Error al crear directorio")
+                        println("Error al crear directorio de salida")
+                        upload = 0
                     }
             }//Cierre del quinto if
         }//Cierre del segundo else
@@ -269,7 +272,8 @@ class TestLinkIntegration {
             File carpeta
             String nameImg
             carpeta = new File(filesEvidence as String)
-            if (carpeta.listFiles().length == 0) {//Validación que la carpeta tenga contenido
+            println(carpeta.listFiles().length)
+            if (carpeta.listFiles().length == 0 ) {//Validación que la carpeta tenga contenido
                 println("No hay imágenes o archivos para subir")
             } else {
                 for (int i = 0; i < carpeta.listFiles().length; i++) {

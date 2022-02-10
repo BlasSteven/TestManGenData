@@ -1,4 +1,4 @@
-package org.integration
+package org.integration.util
 
 import javax.imageio.ImageIO
 import java.awt.Graphics2D
@@ -93,4 +93,6 @@ class Utility {
         thumbnailImage.getGraphics().drawImage(im, 0, 0, 1295, 892, null)
         ImageIO.write(thumbnailImage, "JPG", new File(output))
     }
+
+
 }

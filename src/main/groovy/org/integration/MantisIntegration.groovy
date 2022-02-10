@@ -47,20 +47,24 @@ class MantisIntegration {
     private getIdProjectMantis() {
         mantisAllProjects()
         JSONObject responseJson
-        responseJson = new JSONObject(responseProject)
-        JSONArray objectProyect = (JSONArray) responseJson.get("projects")
-        for (int i = 0; i < objectProyect.length(); i++) {
-            JSONObject object = objectProyect.getJSONObject(i)
-            if (object.get("name") == nameProject) {
-                idProyectMantis = object.get("id").toString()
-                nameProjectMantis = object.get("name")
-                break
-            }//Cierre del "if"
-        }//Cierre del "for"
-        if(nameProject != nameProjectMantis){
-            notFoundProject = 1
-            notFoundCase = notFoundProject
-            println("¡No existe projecto Mantis!")
+        if(responseProject == "null"){
+            println("No hubo una respuesta exitosa al extrae el id del proyecto, revise el response code")
+        }else {
+            responseJson = new JSONObject(responseProject)
+            JSONArray objectProyect = (JSONArray) responseJson.get("projects")
+            for (int i = 0; i < objectProyect.length(); i++) {
+                JSONObject object = objectProyect.getJSONObject(i)
+                if (object.get("name") == nameProject) {
+                    idProyectMantis = object.get("id").toString()
+                    nameProjectMantis = object.get("name")
+                    break
+                }//Cierre del "if"
+            }//Cierre del "for"
+            if (nameProject != nameProjectMantis) {
+                notFoundProject = 1
+                notFoundCase = notFoundProject
+                println("¡No existe projecto Mantis!")
+            }
         }
     }
 
@@ -73,22 +77,26 @@ class MantisIntegration {
         getIdProjectMantis()
         JSONObject responseJson
         JSONObject jsonProject
-        responseJson = new JSONObject(responseProject)
-        JSONArray objectProyect = (JSONArray) responseJson.get("projects")
-        jsonProject = objectProyect.get(0)
-        JSONArray objectCategory = (JSONArray) jsonProject.get("categories")
-        for (int i = 0; i < objectCategory.length(); i++) {
-            JSONObject object = objectCategory.getJSONObject(i)
-            if (object.get("name") == nameCategory) {
-                idCategoryMantis = object.get("id").toString()
-                nameCategoryMantis = object.get("name")
-                break
+        if(responseProject == "null") {
+            println("No hubo una respuesta exitosa al extraer el id categoría, revise el response code")
+        }else{
+            responseJson = new JSONObject(responseProject)
+            JSONArray objectProyect = (JSONArray) responseJson.get("projects")
+            jsonProject = objectProyect.get(0)
+            JSONArray objectCategory = (JSONArray) jsonProject.get("categories")
+            for (int i = 0; i < objectCategory.length(); i++) {
+                JSONObject object = objectCategory.getJSONObject(i)
+                if (object.get("name") == nameCategory) {
+                    idCategoryMantis = object.get("id").toString()
+                    nameCategoryMantis = object.get("name")
+                    break
+                }
             }
-        }
-        if(nameCategoryMantis != nameCategory){
-            notFoundCategory = 1
-            notFoundCase = notFoundCategory
-            println("¡No existe Categoria Mantis!")
+            if (nameCategoryMantis != nameCategory) {
+                notFoundCategory = 1
+                notFoundCase = notFoundCategory
+                println("¡No existe Categoria Mantis!")
+            }
         }
     }
 

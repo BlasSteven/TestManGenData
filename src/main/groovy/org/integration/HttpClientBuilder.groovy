@@ -1,5 +1,7 @@
 package org.integration
 
+import org.integration.util.Utility
+
 /**
  * La clase es un constructor de clientes HTTP
  * @author Blas Steven Alarcon Rueda. BlasSteven - https://github.com/BlasSteven/TestManGenData
