@@ -272,7 +272,6 @@ class TestLinkIntegration {
             File carpeta
             String nameImg
             carpeta = new File(filesEvidence as String)
-            println(carpeta.listFiles().length)
             if (carpeta.listFiles().length == 0 ) {//Validación que la carpeta tenga contenido
                 println("No hay imágenes o archivos para subir")
             } else {
