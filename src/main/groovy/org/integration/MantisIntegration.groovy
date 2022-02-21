@@ -1,5 +1,7 @@
 package org.integration
 
+import org.integration.constants.TestManIntegrationErrors
+import org.integration.util.TestManIntegrationException
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -10,8 +12,8 @@ import org.json.JSONObject
  */
 
 class MantisIntegration {
-    Propiedades props = new Propiedades()
-    private String nameProject, nameCategory, asigneTo, responseProject, idProyectMantis, idCategoryMantis, response,
+    Properties props = new Properties()
+    private String nameProject, nameCategory, asigneTo, responseProject, idProjectMantis, idCategoryMantis, response,
             issueId, nameProjectMantis, nameCategoryMantis
     private int notFoundCategory ,notFoundProject, notFoundCase
 
@@ -20,7 +22,7 @@ class MantisIntegration {
      * @param nameProject nombre del proyecto en mantis
      * @param nameCategory nombre de la categoría
      * @param asigneTo nombre de la persona que se va ah asignar
-     * */
+     **/
     MantisIntegration(String nameProject, String nameCategory, String asigneTo){
         this.nameProject = nameProject
         this.nameCategory = nameCategory
@@ -44,18 +46,18 @@ class MantisIntegration {
      * <p>
      * Extrae el id del proyecto de la respuesta de mantisAllProjects
      * */
-    private getIdProjectMantis() {
+    private getIdProjectMantis() throws TestManIntegrationException{
         mantisAllProjects()
         JSONObject responseJson
         if(responseProject == "null"){
-            println("No hubo una respuesta exitosa al extrae el id del proyecto, revise el response code")
+            throw new TestManIntegrationException(TestManIntegrationErrors.HTTP_RESPONSE_EMPTY_ID_PROJECT.getName())
         }else {
             responseJson = new JSONObject(responseProject)
-            JSONArray objectProyect = (JSONArray) responseJson.get("projects")
-            for (int i = 0; i < objectProyect.length(); i++) {
-                JSONObject object = objectProyect.getJSONObject(i)
+            JSONArray objectProject = (JSONArray) responseJson.get("projects")
+            for (int i = 0; i < objectProject.length(); i++) {
+                JSONObject object = objectProject.getJSONObject(i)
                 if (object.get("name") == nameProject) {
-                    idProyectMantis = object.get("id").toString()
+                    idProjectMantis = object.get("id").toString()
                     nameProjectMantis = object.get("name")
                     break
                 }//Cierre del "if"
@@ -63,7 +65,7 @@ class MantisIntegration {
             if (nameProject != nameProjectMantis) {
                 notFoundProject = 1
                 notFoundCase = notFoundProject
-                println("¡No existe projecto Mantis!")
+                throw new TestManIntegrationException(TestManIntegrationErrors.MANTIS_PROJECT_NOT_FOUND.getName())
             }
         }
     }
@@ -72,17 +74,17 @@ class MantisIntegration {
      * <b>getIdCategoryMantis</b>
      * <p>
      * Extrae el id categoría de la respuesta de mantisAllProjects
-     * */
-    private getIdCategoryMantis() {
+     **/
+    private getIdCategoryMantis() throws TestManIntegrationException{
         getIdProjectMantis()
         JSONObject responseJson
         JSONObject jsonProject
         if(responseProject == "null") {
-            println("No hubo una respuesta exitosa al extraer el id categoría, revise el response code")
+            throw new TestManIntegrationException(TestManIntegrationErrors.HTTP_RESPONSE_EMPTY_ID_CATEGORY.getName())
         }else{
             responseJson = new JSONObject(responseProject)
-            JSONArray objectProyect = (JSONArray) responseJson.get("projects")
-            jsonProject = objectProyect.get(0)
+            JSONArray objectProject = (JSONArray) responseJson.get("projects")
+            jsonProject = objectProject.get(0)
             JSONArray objectCategory = (JSONArray) jsonProject.get("categories")
             for (int i = 0; i < objectCategory.length(); i++) {
                 JSONObject object = objectCategory.getJSONObject(i)
@@ -95,7 +97,7 @@ class MantisIntegration {
             if (nameCategoryMantis != nameCategory) {
                 notFoundCategory = 1
                 notFoundCase = notFoundCategory
-                println("¡No existe Categoria Mantis!")
+                throw new TestManIntegrationException(TestManIntegrationErrors.MANTIS_CATEGORY_NOT_FOUND.getName())
             }
         }
     }
@@ -103,19 +105,18 @@ class MantisIntegration {
     /**
      * <b>mantisCreateIssue</b>
      * @param summary cabecera del issue
-     * @param description descripcion general del issue
-     * @param additional informacion adicional del issue
+     * @param description descripción general del issue
+     * @param additional información adicional del issue
      * */
     void mantisCreateIssue(String summary, String description, String additional) {
         getIdCategoryMantis()
-        if(notFoundCase != 1) {
             def body = """
             {
                 "summary": "$summary",
                 "description": "$description",
                 "additional_information": "$additional",
                 "project": {
-                    "id": $idProyectMantis,
+                    "id": $idProjectMantis,
                     "name": "$nameProject"
                 },
                 "category": {
@@ -151,25 +152,17 @@ class MantisIntegration {
                     null, "/api/rest/issues", body)
             http.setHeader().setRequestProperty(props.getKey(), props.getKeyValue())
             response = http.responseRequest()
-        }else{
-            println("No se ejecutara el api /api/rest/issues "+notFoundCase)
-        }
     }
 
     /**
      * <b>getIssue</b>
-     * @return trae el id del issue si se creo correctamente
+     * @return trae el id del issue
      * */
     String getIssue() {
         JSONObject jsonResponse = null
-        if (response == null) {
-            println("No se creo el issue")
-            issueId = 0
-        }else{
             jsonResponse = new JSONObject(response)
         JSONObject objectIssue = (JSONObject) jsonResponse.get("issue")
         issueId = objectIssue.get("id").toString()
-        }
             return issueId
     }
 }

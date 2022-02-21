@@ -7,9 +7,9 @@ import java.util.regex.Pattern
  * @author Blas Steven Alarcon Rueda. BlasSteven - https://github.com/BlasSteven/TestManGenData
  * @since 1.0.0
  */
-class Propiedades {
+class Properties {
 
-    Properties properties = new Properties()
+    java.util.Properties properties = new java.util.Properties()
     private String test, devKey,keyValue, key
     private String proyecto
     private String casoPrueba

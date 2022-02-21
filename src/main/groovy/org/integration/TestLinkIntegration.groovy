@@ -23,13 +23,10 @@ import org.integration.util.Utility
 
 class TestLinkIntegration {
     Utility util = new Utility()
-    Propiedades props = new Propiedades()
-    private File filesEvidence, filesEvidenceCopy
     private String projectName, planName, buildName, suiteName, caseName, noteTestCase, bugId,
-            fullExternalId,fileClass, dir
+            fullExternalId,fileClass
     private ExecutionStatus resultTestCase
-    private int projectId, planId, buildId, suiteId, caseId, caseExternalId, executionDuration,execResultId, catcha
-    private int upload = 1
+    private int projectId, planId, buildId, suiteId, caseId, caseExternalId, executionDuration,execResultId
     TestLinkAPI api
 
     /**
@@ -41,12 +38,12 @@ class TestLinkIntegration {
      * @param suiteName nombre de la suite de testlink
      * @param caseName nombre del caso de testlink
      * @param noteTestCase nota del caso
-     * @param fileClass recibe el nombre de la clase para crear el archivo de evidencia para subir la evidencia al caso
+     * @param nameFile recibe el nombre de la clase para crear el archivo de evidencia para subir la evidencia al caso
      * @param executionDuration tiempo de ejecución de las prueba
      * */
 
     TestLinkIntegration(String projectName, String planName, String buildName, String suiteName, String caseName,
-                        String noteTestCase, int executionDuration, String fileClass) {
+                        String noteTestCase, int executionDuration, String nameFile) {
         this.projectName = projectName
         this.planName = planName
         this.buildName = buildName
@@ -54,7 +51,7 @@ class TestLinkIntegration {
         this.caseName = caseName
         this.noteTestCase = noteTestCase
         this.executionDuration = executionDuration
-        this.fileClass = fileClass
+        this.fileClass = nameFile
     }
 
     /**
@@ -63,7 +60,7 @@ class TestLinkIntegration {
      * Autenticación a testlink
      * */
     private TestLinkAPI api() {
-        Propiedades props = new Propiedades()
+        Properties props = new Properties()
         api = null
         URL testlinkURL = null
         try {
@@ -76,11 +73,11 @@ class TestLinkIntegration {
     }
 
      /**
-      * <b>testProyects</b>
+      * <b>testProjects</b>
       * <p>
       * Extrae el id del proyecto en testlink
       */
-    private void testProyects(){
+    private void testProjects(){
         api()
         TestProject[] testProjects = api.getProjects()
         for (TestProject pro : testProjects) {
@@ -97,7 +94,7 @@ class TestLinkIntegration {
      * Extrae el id plan de pruebas en testlink
      */
     private void testPlans() {
-        testProyects()
+        testProjects()
         TestPlan[] testPlans = api.getProjectTestPlans(projectId)
         for (TestPlan plans : testPlans) {
             if (plans.getName() == planName) {
@@ -143,7 +140,7 @@ class TestLinkIntegration {
      * <b>testCases</b>
      * <p>
      * Extrae el id del caso en testlink
-     */
+     **/
     private void testCases() {
         testSuites()
         TestCase[] testCases = api.getTestCasesForTestSuite(suiteId, true, TestCaseDetails.SIMPLE)
@@ -182,7 +179,7 @@ class TestLinkIntegration {
      * <b>reportTCResults</b>
      * <p>
      * Coloca los resultados de la prueba en testlink
-     */
+     **/
     void reportTCResults(ExecutionStatus resultTestCase,String bugId,boolean overwrite) {
         try {
             this.resultTestCase = resultTestCase
@@ -208,111 +205,41 @@ class TestLinkIntegration {
                     "")
             execResult()
         }catch(TestLinkAPIException e){
-            println(e)
-            catcha = 1
+            e.printStackTrace()
+            System.exit(-1)
         }
     }
 
     /**
-     * <b>catcha</b>
-     * @return El valor 1 cuando pasa por la excepción
-     * */
-    int catcha(){
-        return catcha
+     * <b>sendEvidence</b>
+     * <p>
+     *     Envía la evidencia al método uploadAttachmen en orden de creación
+     **/
+     void sendEvidence(){
+        util.manageFolderUploadAttachment(fileClass)
+        //Subir los archivos de mayor a menor
+         if(util.getFileEmpty() != 1) {
+             util.getMapEvidence().forEach((k, v) -> { uploadAttachment(v, v.replace(".png", ""), v) })
+             println(" ¡Complete!")
+             FileUtils.deleteDirectory(util.getDirEvidenceCopy())//Elimina el directorio cuando sube los archvivos
+             FileUtils.deleteDirectory(util.getDirEvidence())//Elimina el directorio cuando sube los archvivos
+         }
     }
-
-    /**
-     * <b>evidenceFolder</b>
-     * <p>
-     * Crea el folder con la variable fileClass que es el nombre del directorio
-     * en el directorio definido en el archivo de propiedades
-     * */
-    private void evidenceFolder(){
-        String nameFolder =  util.convertFile(fileClass)
-        if (props.getDir() == "null" || props.getDir() == ""){
-            dir =  System.getProperty("user.dir")
-        }else {
-            dir =  props.getDir()
-        }
-        if (fileClass == "" || fileClass == "null" || fileClass == null) {
-            println("No hay nombre de carpeta")
-            upload = 0
-        }else{
-        filesEvidence = new File(dir,nameFolder)
-            if (!filesEvidence.exists()) {
-                if (filesEvidence.mkdirs()) {
-                    println("Directorio entrada de evidencias creado")
-                } else {
-                    println("Error al crear directorio de entrada")
-                    upload = 0
-                }
-            }//Cierre del tercer if
-            filesEvidenceCopy = new File(dir,nameFolder+System.currentTimeMillis())
-                if (!filesEvidenceCopy.exists()) {
-                    if (filesEvidenceCopy.mkdirs()) {
-                        println("Directorio salida de evidencias creado ")
-                    } else {
-                        println("Error al crear directorio de salida")
-                        upload = 0
-                    }
-            }//Cierre del quinto if
-        }//Cierre del segundo else
-    }//Cierre del método
-
-    /**
-     * <b>manageFolderUploadAttachment</b>
-     * <p>
-     * Subir los archivos en orden de creación, identificando los con la palabra clave "Step_X" X que hace alusión
-     * al numero del paso realizando, validaciones al fichero, peso de la imagen y resolución {@link Utility #decreaseSize(String input, String output) decreaseSize}
-     * */
-    void manageFolderUploadAttachment() {
-        evidenceFolder()
-        if (upload == 1) {//upload siempre sera 1 si existe archivo
-            def Map = [:]
-            File carpeta
-            String nameImg
-            carpeta = new File(filesEvidence as String)
-            if (carpeta.listFiles().length == 0 ) {//Validación que la carpeta tenga contenido
-                println("No hay imágenes o archivos para subir")
-            } else {
-                for (int i = 0; i < carpeta.listFiles().length; i++) {
-                    File fileList = carpeta.listFiles()[i]
-                    long size = fileList.length()
-                    nameImg = carpeta.list()[i]
-                    Map.put(fileList.lastModified(),nameImg)//colocar el lastModified y el nombre en un mapa para ordenar
-                    if (size != 0) {
-                        //Redimensión y ajustes de propiedades para evitar que supere los bytes admitidos
-                        util.decreaseSize(fileList.toString(), filesEvidenceCopy.toString()+"/"+nameImg)
-                    }//Cierre del if
-                }//Cierre del for
-                //Ordenar de mayor a menor los archivos para subierlos
-                java.util.Map<Long, String> map = new TreeMap<>(Collections.reverseOrder())
-                map.putAll(Map)
-                //Subir los archivos de mayor a menor
-                map.forEach((k, v) -> { uploadAttachment(v, v.replace(".png", ""),v) })
-                println(" ¡Complete!")
-            }
-            FileUtils.deleteDirectory(filesEvidence)//Elimina el directorio cuando sube los archvivos
-            FileUtils.deleteDirectory(filesEvidenceCopy)//Elimina el directorio cuando sube los archvivos
-        }else{
-            println("No hay datos para subir")
-        }
-    }//Cierre del metodo
 
     /**
      * <b>uploadAttachment</b>
      * <p>
-     *     Sube los archivos en el aplicativo testlink dependiendo al caso y ejecucion de la prueba
-     * @deprecated Debido a que la librería "br.eti.kinoshita" es antigua genera la siguiente excepción
+     * Sube los archivos en el aplicativo testlink dependiendo al caso y ejecución de la prueba
+     * deprecated Debido a que la librería "br.eti.kinoshita" es antigua genera la siguiente excepción
      * "(uploadExecutionAttachment) - Error inserting attachment on DB", la cual se solvento creando un try
      * en el método Attachment
      * */
     private void uploadAttachment(String archive, String tileAction,String step){
-        File attachmentFile = new File(filesEvidenceCopy,archive)
+        File attachmentFile = new File(util.getDirEvidenceCopy(),archive)
         String fileContent = null
             byte[] byteArray = FileUtils.readFileToByteArray(attachmentFile)
             fileContent = new String(Base64.encodeBase64(byteArray))
-        try {
+       try {
             Attachment attachment = api.uploadExecutionAttachment(
                     execResultId, //executionId
                     tileAction, //title
@@ -321,11 +248,11 @@ class TestLinkIntegration {
                     "image/jpg", //fileType
                     fileContent)
             Thread.sleep(2000)
-        }catch(Exception ignored){} //Se ignora excepción hasta que se encuentre posible solución
+       }catch(Exception ignored){} //Se ignora excepción hasta que se encuentre posible solución
         //mapa de carga para los archivos
         def map = ["[ ― ]","[ \\ ]","[ | ]","[ / ]","[ ― ]","[ \\ ]","[ | ]","[ / ]","[ ― ]"]
         for (int i = 0; i<map.size(); i++){
-            System.out.print("\r"+"upload Attachment: "+map.get(i))
+            System.out.print("\r"+"Upload Attachment: "+map.get(i))
             Thread.sleep(500)
         }
     }

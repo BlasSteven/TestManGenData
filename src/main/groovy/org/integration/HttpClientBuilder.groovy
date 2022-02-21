@@ -1,5 +1,7 @@
 package org.integration
 
+import org.integration.constants.TestManIntegrationErrors
+import org.integration.util.TestManIntegrationException
 import org.integration.util.Utility
 
 /**
@@ -10,6 +12,8 @@ import org.integration.util.Utility
 class HttpClientBuilder {
     private String typeMethod, protocol, server, path, body, port, url, response
     private def method
+
+
 
     /**
      * <b>HttpClientBuilder</b>
@@ -38,8 +42,8 @@ class HttpClientBuilder {
     private urlConstructor() {
         if (port == "" | port == null) {
             url = new URL(protocol + '://' + server + "/" + path + "/")
-        }else{
-            url = new URL(protocol + '://' + server +':'+ port + "/" + path + "/")
+        } else {
+            url = new URL(protocol + '://' + server + ':' + port + "/" + path + "/")
         }
     }
 
@@ -48,10 +52,10 @@ class HttpClientBuilder {
      * <p>
      * Crea los parámetros de la petición dependiendo a su método
      * */
-    private methodConstructor() {
+    private methodConstructor() throws TestManIntegrationException{
         urlConstructor()
         if (typeMethod == "" | typeMethod == null) {
-            println("¡No hay metodo!")
+            throw new TestManIntegrationException(TestManIntegrationErrors.HTTP_NOT_METHOD.getName())
         }else{
             switch (typeMethod.toLowerCase().trim()) {
                 case "get":
@@ -73,7 +77,7 @@ class HttpClientBuilder {
     }//Cierre del método
 
     /**
-     * <b>setheader</b>
+     * <b>setHeader</b>
      * <p>
      * Colocar los header en los request
      * @return EL método HTTP
@@ -91,7 +95,7 @@ class HttpClientBuilder {
      * */
     private sendRequest(){
         method.setRequestProperty("Content-Type", "application/json")
-        if(typeMethod.toLowerCase().trim() == "post") {
+        if (typeMethod.toLowerCase().trim() == "post") {
             method.setDoOutput(true)
             method.getOutputStream()
                     .write(body.getBytes("UTF-8"))
@@ -102,16 +106,22 @@ class HttpClientBuilder {
      * <b>exceptionStatus</b>
      * @return status code de la transacción
      * */
-    private exceptionStatus(){
+    private exceptionStatus() throws TestManIntegrationException{
         sendRequest()
-        def methodRC = method.getResponseCode()
-        println("response code: "+methodRC+" "+url)
-        if(methodRC >= 200 & methodRC <= 203) {
+        def responseCode = method.getResponseCode()
+        if(responseCode >= 200 & responseCode <= 203) {
             response = method.getInputStream().getText()
-        }else if(methodRC >= 400 & methodRC <= 499){
-            println("Revisa el endpoint si es 404 $url, o el body  si  es 400: $body")
+        }else if(responseCode >= 400 & responseCode <= 499){
+            switch (responseCode) {
+                case 404:
+                    throw new TestManIntegrationException(TestManIntegrationErrors.HTTP_RESPONSE_NOT_FOUND.getName())
+                break
+                case  400:
+                    throw new TestManIntegrationException(TestManIntegrationErrors.HTTP_RESPONSE_BAD_REQUEST.getName())
+                break
+            }
         }else{
-            println("El servicio /o api esta respondiendo con un codigo de estado 500")
+            throw new TestManIntegrationException(TestManIntegrationErrors.HTTP_RESPONSE_INTERNAL_SERVER_ERROR.getName())
         }
     }
 

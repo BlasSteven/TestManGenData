@@ -11,8 +11,8 @@ class TestManIntegration {
 
     private int typeCase, executionDuration
     private ExecutionStatus result
-    private String projectTestMan, testLinkPlan, testLinkTestCase, testLinkSuite, testLinkbuild, categoryMantis,
-                   assigneTo, exception, notes, summary, bugId, UrlExecResultId, fileClass
+    private String projectTestMan, testLinkPlan, testLinkTestCase, testLinkSuite, testLinkBuild, categoryMantis,
+                   assigneTo, exception, notes, summary, bugId, UrlExecResultId, nameFile
     private boolean statusTest = true
 
     /**
@@ -22,29 +22,29 @@ class TestManIntegration {
      * @param testLinkPlan
      * @param testLinkTestCase
      * @param testLinkSuite
-     * @param testLinkbuild
+     * @param testLinkBuild
      * @param categoryMantis
      * @param assigneTo
      * @param statusTest
      * @param exception
      * @param executionDuration
-     * @param fileClass
+     * @param nameFile
      * */
 
     TestManIntegration(projectTestMan, testLinkPlan, testLinkTestCase,
-                       testLinkSuite, testLinkbuild, categoryMantis, assigneTo,
-                       statusTest, exception, executionDuration, fileClass) {
+                       testLinkSuite, testLinkBuild, categoryMantis, assigneTo,
+                       statusTest, exception, executionDuration, nameFile) {
         this.projectTestMan = projectTestMan
         this.testLinkPlan = testLinkPlan
         this.testLinkTestCase = testLinkTestCase
         this.testLinkSuite = testLinkSuite
-        this.testLinkbuild = testLinkbuild
+        this.testLinkBuild = testLinkBuild
         this.categoryMantis = categoryMantis
         this.assigneTo = assigneTo
         this.statusTest = statusTest
         this.exception = exception
         this.executionDuration = executionDuration
-        this.fileClass = fileClass
+        this.nameFile = nameFile
     }
 
     /**
@@ -53,8 +53,8 @@ class TestManIntegration {
      * <b>TestLinkIntegration</b>
      */
     MantisIntegration man = new MantisIntegration(projectTestMan, categoryMantis, assigneTo)
-    TestLinkIntegration testLink = new TestLinkIntegration(projectTestMan, testLinkPlan, testLinkbuild, testLinkSuite,
-            testLinkTestCase, notes, executionDuration, fileClass)
+    TestLinkIntegration testLink = new TestLinkIntegration(projectTestMan, testLinkPlan, testLinkBuild, testLinkSuite,
+            testLinkTestCase, notes, executionDuration, nameFile)
 
     /**
      * <b>caseValidTest</b>
@@ -80,12 +80,11 @@ class TestManIntegration {
             notes = "Executed not successfully" + e
         } finally {
             testLink.reportTCResults(result, bugId, false)
-            testLink.manageFolderUploadAttachment()
+            testLink.sendEvidence()
             if (statusTest) {
                 bugId = null
             } else {
                 UrlExecResultId = testLink.getUrlExecResultId()
-                if (testLink.catcha() != 1 ){
                     switch (typeCase) {
                         case 1: man.mantisCreateIssue(summary, UrlExecResultId, notes)
                             break
@@ -95,9 +94,6 @@ class TestManIntegration {
                     bugId = man.getIssue()
                     println("issue generate: " + bugId)
                     testLink.reportTCResults(result, bugId, true)
-                }else{
-                    println("No se pudo ejecutar el caso, verifique que los datos ingresados en testlink son correctos")
-                }
             }//cierre del segundo else
         }//cierre del finally catch
     }//cierre del método
